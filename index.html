@@ -3,138 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV como Banco de Dados</title>
+    <title>Lista de Músicas</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(to right, #87CEEB, #FFD700);
             color: #333;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
         h1 {
-            margin: 20px 0;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
             margin-bottom: 20px;
         }
-        input, button {
-            padding: 10px;
-            font-size: 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        ul {
+            list-style-type: none;
+            padding: 0;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            border-collapse: collapse;
-            margin-top: 20px;
-            width: 80%;
-        }
-        th, td {
+        li {
+            margin: 5px 0;
+            background-color: #f9f9f9;
             border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
+            border-radius: 5px;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>CSV como Banco de Dados</h1>
-    <form id="dataForm">
-        <input type="text" id="name" placeholder="Digite seu nome" required>
-        <input type="email" id="email" placeholder="Digite seu e-mail" required>
-        <button type="button" onclick="addData()">Adicionar</button>
-    </form>
-
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <button onclick="exportCSV()">Exportar para CSV</button>
+    <h1>Lista de Músicas</h1>
+    <ul id="musicList">
+        <!-- Os dados do CSV serão carregados aqui -->
+    </ul>
 
     <script>
-        // Array para armazenar os dados
-        let database = [];
+        async function loadCSV() {
+            try {
+                // Busca o arquivo musicas.csv
+                const response = await fetch('musicas.csv');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar o arquivo CSV.');
+                }
 
-        // Função para adicionar dados
-        function addData() {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+                // Lê o conteúdo como texto
+                const data = await response.text();
 
-            if (!name || !email) {
-                alert("Por favor, preencha todos os campos!");
-                return;
+                // Processa o CSV em linhas
+                const rows = data.split('\n');
+
+                // Obtém a lista de músicas (pula o cabeçalho, se houver)
+                const musicList = rows.map(row => row.trim()).filter(row => row !== "");
+
+                // Atualiza a lista no HTML
+                const ul = document.getElementById('musicList');
+                musicList.forEach(music => {
+                    const li = document.createElement('li');
+                    li.textContent = music;
+                    ul.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error.message);
+                alert('Não foi possível carregar a lista de músicas.');
             }
-
-            // Adicionar os dados ao "banco"
-            database.push({ name, email });
-
-            // Atualizar a tabela
-            updateTable();
-
-            // Limpar os campos
-            document.getElementById('name').value = '';
-            document.getElementById('email').value = '';
         }
 
-        // Função para atualizar a tabela
-        function updateTable() {
-            const tbody = document.querySelector('#dataTable tbody');
-            tbody.innerHTML = '';
-
-            database.forEach((entry, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${entry.name}</td>
-                    <td>${entry.email}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // Função para exportar para CSV
-        function exportCSV() {
-            const csvHeaders = ['Nome', 'Email'];
-            const csvRows = database.map(entry => `${entry.name},${entry.email}`);
-
-            // Adicionar cabeçalhos
-            const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
-
-            // Criar um Blob e fazer download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'dados.csv';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // Chama a função ao carregar a página
+        loadCSV();
     </script>
 </body>
 </html>
