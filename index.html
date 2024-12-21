@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bom Dia</title>
+    <title>CSV como Banco de Dados</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,16 +18,123 @@
             margin: 0;
         }
         h1 {
-            font-size: 3em;
-            margin: 0.5em 0;
+            margin: 20px 0;
         }
-        p {
-            font-size: 1.5em;
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <h1>Bom Dia!</h1>
-    <p>Que o seu dia seja cheio de alegria e realizações!</p>
+    <h1>CSV como Banco de Dados</h1>
+    <form id="dataForm">
+        <input type="text" id="name" placeholder="Digite seu nome" required>
+        <input type="email" id="email" placeholder="Digite seu e-mail" required>
+        <button type="button" onclick="addData()">Adicionar</button>
+    </form>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button onclick="exportCSV()">Exportar para CSV</button>
+
+    <script>
+        // Array para armazenar os dados
+        let database = [];
+
+        // Função para adicionar dados
+        function addData() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            if (!name || !email) {
+                alert("Por favor, preencha todos os campos!");
+                return;
+            }
+
+            // Adicionar os dados ao "banco"
+            database.push({ name, email });
+
+            // Atualizar a tabela
+            updateTable();
+
+            // Limpar os campos
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+        }
+
+        // Função para atualizar a tabela
+        function updateTable() {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+
+            database.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.name}</td>
+                    <td>${entry.email}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Função para exportar para CSV
+        function exportCSV() {
+            const csvHeaders = ['Nome', 'Email'];
+            const csvRows = database.map(entry => `${entry.name},${entry.email}`);
+
+            // Adicionar cabeçalhos
+            const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+
+            // Criar um Blob e fazer download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'dados.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
 </body>
 </html>
